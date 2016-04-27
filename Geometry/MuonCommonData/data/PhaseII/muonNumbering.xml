@@ -514,5 +514,10 @@
    <Parameter name="CopyNoTag" value="[m0_layer]"/>
    <Parameter name="CopyNoOffset" value="3*[super]"/>
   </SpecPar>
+  <SpecPar name="MuonME0Chamber">
+   <PartSelector path="//GHA0.*"/>
+   <Parameter name="CopyNoTag" value="[m0_roll]"/>
+   <Parameter name="CopyNoOffset" value="4*[super]"/>
+  </SpecPar>
  </SpecParSection>
 </DDDefinition>
