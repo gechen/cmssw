@@ -1,5 +1,6 @@
 import FWCore.ParameterSet.Config as cms
 from Configuration.StandardSequences.Eras import eras
+from Configuration.Eras.Modifier_phase1PixelNewFPix_cff import phase1PixelNewFPix as _phase1PixelNewFPix
 
 ClusterShapeHitFilterESProducer = cms.ESProducer("ClusterShapeHitFilterESProducer",
                                                         ComponentName = cms.string('ClusterShapeHitFilter'),
@@ -8,4 +9,10 @@ ClusterShapeHitFilterESProducer = cms.ESProducer("ClusterShapeHitFilterESProduce
                                                         )
 eras.phase1Pixel.toModify(ClusterShapeHitFilterESProducer,
     PixelShapeFile = 'RecoPixelVertexing/PixelLowPtUtilities/data/pixelShape_Phase1Tk.par'
+)
+eras.phase2_tracker.toModify(ClusterShapeHitFilterESProducer,
+    PixelShapeFile = 'RecoPixelVertexing/PixelLowPtUtilities/data/pixelShape_Phase1Tk.par'
+)
+_phase1PixelNewFPix.toModify(ClusterShapeHitFilterESProducer,
+    PixelShapeFile = 'RecoPixelVertexing/PixelLowPtUtilities/data/pixelShape_Phase1TkNewFPix.par'
 )

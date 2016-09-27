@@ -1,5 +1,6 @@
 import FWCore.ParameterSet.Config as cms
 from Configuration.StandardSequences.Eras import eras
+from Configuration.Eras.Modifier_tracker_apv_vfp30_2016_cff import tracker_apv_vfp30_2016 as _tracker_apv_vfp30_2016
 
 ### STEP 0 ###
 
@@ -49,6 +50,13 @@ eras.trackingPhase1PU70.toModify(initialStepSeeds,
     RegionFactoryPSet = dict(RegionPSet = dict(ptMin = 0.7)),
     SeedMergerPSet = _SeedMergerPSet
 )
+eras.trackingPhase2PU140.toModify(initialStepSeeds,
+   ClusterCheckPSet = dict(doClusterCheck = cms.bool(False)),
+   OrderedHitsFactoryPSet = dict(GeneratorPSet = dict(maxElement = 0)),
+   RegionFactoryPSet = dict(RegionPSet = dict(ptMin = 0.8)),
+   SeedCreatorPSet = dict(magneticField = '', propagator = 'PropagatorWithMaterial'),
+   SeedMergerPSet = _SeedMergerPSet
+) 
 
 
 eras.trackingLowPU.toModify(initialStepSeeds, OrderedHitsFactoryPSet = dict(GeneratorPSet = dict(maxElement = 100000)))
@@ -60,9 +68,10 @@ _initialStepTrajectoryFilterBase = TrackingTools.TrajectoryFiltering.TrajectoryF
     minPt = 0.2,
 )
 initialStepTrajectoryFilterBase = _initialStepTrajectoryFilterBase.clone(
-    maxCCCLostHits = 2,
+    maxCCCLostHits = 0,
     minGoodStripCharge = cms.PSet(refToPSet_ = cms.string('SiStripClusterChargeCutLoose'))
 )
+_tracker_apv_vfp30_2016.toModify(initialStepTrajectoryFilterBase, maxCCCLostHits = 2)
 initialStepTrajectoryFilterInOut = initialStepTrajectoryFilterBase.clone(
     minimumNumberOfHits = 4,
     seedExtension = 1,
@@ -82,17 +91,29 @@ initialStepTrajectoryFilter = cms.PSet(
     ),
 )
 
+eras.trackingPhase2PU140.toReplaceWith(initialStepTrajectoryFilter, TrackingTools.TrajectoryFiltering.TrajectoryFilter_cff.CkfBaseTrajectoryFilter_block.clone(
+    minimumNumberOfHits = 3,
+    minPt = 0.2
+    )
+)
 import RecoTracker.MeasurementDet.Chi2ChargeMeasurementEstimator_cfi
 initialStepChi2Est = RecoTracker.MeasurementDet.Chi2ChargeMeasurementEstimator_cfi.Chi2ChargeMeasurementEstimator.clone(
     ComponentName = cms.string('initialStepChi2Est'),
     nSigma = cms.double(3.0),
     MaxChi2 = cms.double(30.0),
-    clusterChargeCut = cms.PSet(refToPSet_ = cms.string('SiStripClusterChargeCutTiny')),
+    clusterChargeCut = cms.PSet(refToPSet_ = cms.string('SiStripClusterChargeCutLoose')),
     pTChargeCutThreshold = cms.double(15.)
+)
+_tracker_apv_vfp30_2016.toModify(initialStepChi2Est,
+    clusterChargeCut = dict(refToPSet_ = "SiStripClusterChargeCutTiny")
 )
 eras.trackingPhase1PU70.toModify(initialStepChi2Est,
     clusterChargeCut = dict(refToPSet_ = 'SiStripClusterChargeCutNone'),
 )
+eras.trackingPhase2PU140.toModify(initialStepChi2Est,
+    clusterChargeCut = dict(refToPSet_ = 'SiStripClusterChargeCutNone'),
+)
+
 
 import RecoTracker.CkfPattern.GroupedCkfTrajectoryBuilder_cfi
 initialStepTrajectoryBuilder = RecoTracker.CkfPattern.GroupedCkfTrajectoryBuilder_cfi.GroupedCkfTrajectoryBuilder.clone(
@@ -109,6 +130,7 @@ eras.trackingPhase1.toModify(initialStepTrajectoryBuilder,
     useSameTrajFilter = False
 )
 eras.trackingPhase1PU70.toModify(initialStepTrajectoryBuilder, maxCand = 6)
+eras.trackingPhase2PU140.toModify(initialStepTrajectoryBuilder, maxCand = 7, minNrOfHitsForRebuild = 1)
 
 import RecoTracker.CkfPattern.CkfTrackCandidates_cfi
 initialStepTrackCandidates = RecoTracker.CkfPattern.CkfTrackCandidates_cfi.ckfTrackCandidates.clone(
@@ -232,6 +254,54 @@ eras.trackingPhase1PU70.toModify(initialStepSelector,
     ] #end of vpset
 )
 
+eras.trackingPhase2PU140.toModify(initialStepSelector,
+    useAnyMVA = None,
+    GBRForestLabel = None,
+    trackSelectors= cms.VPSet(
+        RecoTracker.FinalTrackSelectors.multiTrackSelector_cfi.looseMTS.clone(
+            name = 'initialStepLoose',
+            chi2n_par = 2.0,
+            res_par = ( 0.003, 0.002 ),
+            minNumberLayers = 3,
+            maxNumberLostLayers = 3,
+            minNumber3DLayers = 3,
+            d0_par1 = ( 0.8, 4.0 ),
+            dz_par1 = ( 0.9, 4.0 ),
+            d0_par2 = ( 0.6, 4.0 ),
+            dz_par2 = ( 0.8, 4.0 )
+            ), #end of pset
+        RecoTracker.FinalTrackSelectors.multiTrackSelector_cfi.tightMTS.clone(
+            name = 'initialStepTight',
+            preFilterName = 'initialStepLoose',
+            chi2n_par = 1.4,
+            res_par = ( 0.003, 0.002 ),
+            minNumberLayers = 3,
+            maxNumberLostLayers = 2,
+            minNumber3DLayers = 3,
+            d0_par1 = ( 0.7, 4.0 ),
+            dz_par1 = ( 0.8, 4.0 ),
+            d0_par2 = ( 0.5, 4.0 ),
+            dz_par2 = ( 0.7, 4.0 )
+            ),
+        RecoTracker.FinalTrackSelectors.multiTrackSelector_cfi.highpurityMTS.clone(
+            name = 'initialStep',
+            preFilterName = 'initialStepTight',
+            chi2n_par = 1.0,
+            res_par = ( 0.003, 0.001 ),
+            minNumberLayers = 3,
+            maxNumberLostLayers = 2,
+            minNumber3DLayers = 3,
+            d0_par1 = ( 0.6, 4.0 ),
+            dz_par1 = ( 0.7, 4.0 ),
+            d0_par2 = ( 0.45, 4.0 ),
+            dz_par2 = ( 0.55, 4.0 )
+            ),
+        ), #end of vpset
+    vertices = "pixelVertices"
+) #end of clone
+
+
+
 # Final sequence
 InitialStep = cms.Sequence(initialStepSeedLayers*
                            initialStepSeeds*
@@ -246,3 +316,4 @@ eras.trackingLowPU.toReplaceWith(InitialStep, _InitialStep_LowPU)
 _InitialStep_Phase1PU70 = InitialStep.copyAndExclude([firstStepPrimaryVertices, initialStepClassifier1, initialStepClassifier2, initialStepClassifier3])
 _InitialStep_Phase1PU70.replace(initialStep, initialStepSelector)
 eras.trackingPhase1PU70.toReplaceWith(InitialStep, _InitialStep_Phase1PU70)
+eras.trackingPhase2PU140.toReplaceWith(InitialStep, _InitialStep_Phase1PU70)
