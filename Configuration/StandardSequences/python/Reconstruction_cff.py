@@ -47,7 +47,7 @@ from RecoLocalCalo.CastorReco.CastorSimpleReconstructor_cfi import *
 from RecoTracker.SpecialSeedGenerators.cosmicDC_cff import *
 
 localreco = cms.Sequence(bunchSpacingProducer+trackerlocalreco+muonlocalreco+calolocalreco+castorreco)
-localreco_HcalNZS = cms.Sequence(trackerlocalreco+muonlocalreco+calolocalrecoNZS+castorreco)
+localreco_HcalNZS = cms.Sequence(bunchSpacingProducer+trackerlocalreco+muonlocalreco+calolocalrecoNZS+castorreco)
 
 _phase2_localreco = localreco.copyAndExclude([castorreco])
 _phase2_localreco_HcalNZS = localreco_HcalNZS.copyAndExclude([castorreco])
@@ -76,6 +76,7 @@ globalreco_tracking = cms.Sequence(offlineBeamSpot*
                           siPixelClusterShapeCachePreSplitting* # unclear where to put this
                           standalonemuontracking*
                           trackingGlobalReco*
+                          hcalGlobalRecoSequence*
                           vertexreco)
 _globalreco_tracking_LowPU_Phase1PU70 = globalreco_tracking.copy()
 _globalreco_tracking_LowPU_Phase1PU70.replace(trackingGlobalReco, recopixelvertexing+trackingGlobalReco)
@@ -87,7 +88,6 @@ from Configuration.Eras.Modifier_trackingPhase2PU140_cff import trackingPhase2PU
 trackingPhase2PU140.toReplaceWith(globalreco_tracking, _globalreco_tracking_LowPU_Phase1PU70)
 
 globalreco = cms.Sequence(globalreco_tracking*
-                          hcalGlobalRecoSequence*
                           particleFlowCluster*
                           ecalClusters*
                           caloTowersRec*                          

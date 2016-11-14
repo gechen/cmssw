@@ -1,5 +1,4 @@
 import FWCore.ParameterSet.Config as cms
-from Configuration.StandardSequences.Eras import eras
 import RecoTracker.IterativeTracking.iterativeTkConfig as _cfg
 
 ### load which are the tracks collection 2 be monitored
@@ -313,15 +312,14 @@ for tracks in selectedTracks :
     label = 'TrackerCollisionSelectedTrackMonCommon' + str(tracks)
     TrackingDQMSourceTier0 += locals()[label]
 # seeding monitoring
-for era in _cfg.allEras() + ["trackingPhase2PU140"]: # FIXME:: allEras() extension should be removed when phase2 tracking is migrated to eras
-    postfix = _cfg.postfix(era)
+for _eraName, _postfix, _era in _cfg.allEras():
     _seq = cms.Sequence()
-    for step in locals()["selectedIterTrackingStep"+postfix]:
+    for step in locals()["selectedIterTrackingStep"+_postfix]:
         _seq += locals()["TrackSeedMon"+step]
-    if era == "":
+    if _eraName == "":
         locals()["TrackSeedMonSequence"] = _seq
     else:
-        getattr(eras, era).toReplaceWith(TrackSeedMonSequence, _seq)
+        _era.toReplaceWith(TrackSeedMonSequence, _seq)
 TrackingDQMSourceTier0 += TrackSeedMonSequence
 # MessageLog
 for module in selectedModules :

@@ -48,7 +48,7 @@ from SimCalorimetry.HGCalSimProducers.hgcalDigitizer_cfi import hgceeDigitizer, 
 from Configuration.Eras.Modifier_phase2_hgcal_cff import phase2_hgcal
 phase2_hgcal.toModify( theDigitizers,
                             hgceeDigitizer = cms.PSet(hgceeDigitizer),
-                            #hgchebackDigitizer = cms.PSet(hgchebackDigitizer),
+                            hgchebackDigitizer = cms.PSet(hgchebackDigitizer),
                             hgchefrontDigitizer = cms.PSet(hgchefrontDigitizer),
 )
 
@@ -57,9 +57,14 @@ phase2_common.toModify( theDigitizers, castor = None )
 
 from SimGeneral.MixingModule.ecalTimeDigitizer_cfi import ecalTimeDigitizer
 from Configuration.Eras.Modifier_phase2_timing_cff import phase2_timing
+from Configuration.Eras.Modifier_phase2_timing_layer_cff import phase2_timing_layer
 phase2_timing.toModify( theDigitizers,
-                             ecalTime = ecalTimeDigitizer.clone() )
+                        ecalTime = ecalTimeDigitizer.clone() )
     
+from SimFastTiming.Configuration.SimFastTiming_cff import fastTimeDigitizer
+phase2_timing_layer.toModify( theDigitizers,
+                        fastTimingLayer = fastTimeDigitizer.clone() )
+
 theDigitizersValid = cms.PSet(
     theDigitizers,
     mergedtruth = cms.PSet(
@@ -69,8 +74,9 @@ theDigitizersValid = cms.PSet(
 
 
 phase2_hgcal.toModify( theDigitizersValid,
-                            calotruth = cms.PSet( caloParticles ) )
+                       calotruth = cms.PSet( caloParticles ) )
+
 
 phase2_timing.toModify( theDigitizersValid.mergedtruth,
-                             createInitialVertexCollection = cms.bool(True) )
+                        createInitialVertexCollection = cms.bool(True) )
 
