@@ -37,6 +37,12 @@ def custom_GE11_8and8partitions_v2(process):
     process.XMLIdealGeometryESSource.geomXMLFiles.insert(mynum,'Geometry/MuonCommonData/data/v7/gem11.xml')
     return process
 
+def custom_gem11(process):
+    mynum = process.XMLIdealGeometryESSource.geomXMLFiles.index('Geometry/MuonCommonData/data/PhaseII/TDR_BaseLine/gem11.xml')
+    process.XMLIdealGeometryESSource.geomXMLFiles.remove('Geometry/MuonCommonData/data/PhaseII/TDR_BaseLine/gem11.xml')
+    process.XMLIdealGeometryESSource.geomXMLFiles.insert(mynum,'Geometry/MuonCommonData/data/PhaseII/gem11.xml')
+    return process
+
 ### GE2/2 in 2023 scenario
 def custom_GE21_v7(process) :
     geomReplace( process, 'gem11.xml','Geometry/MuonCommonData/data/v7/gem11.xml')
