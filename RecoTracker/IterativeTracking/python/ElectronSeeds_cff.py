@@ -32,7 +32,7 @@ trackingPhase2PU140.toReplaceWith(highPtTripletStepSeedClusterMask, seedClusterR
     )
 )
 trackingPhase2PU140.toReplaceWith(pixelPairStepSeedClusterMask, seedClusterRemoverPhase2.clone(
-    trajectories = cms.InputTag("pixelPairStepSeeds"),
+    trajectories = cms.InputTag("detachedQuadStepSeeds"),
     oldClusterRemovalInfo = cms.InputTag("highPtTripletStepSeedClusterMask")
     )
 )
@@ -48,6 +48,10 @@ mixedTripletStepSeedClusterMask = seedClusterRemover.clone(
 )
 from Configuration.Eras.Modifier_trackingPhase1_cff import trackingPhase1
 trackingPhase1.toModify(mixedTripletStepSeedClusterMask,
+    oldClusterRemovalInfo = "detachedTripletStepSeedClusterMask"
+)
+from Configuration.Eras.Modifier_trackingPhase1QuadProp_cff import trackingPhase1QuadProp
+trackingPhase1QuadProp.toModify(mixedTripletStepSeedClusterMask,
     oldClusterRemovalInfo = "detachedTripletStepSeedClusterMask"
 )
 pixelLessStepSeedClusterMask = seedClusterRemover.clone(
@@ -84,6 +88,7 @@ _layerListForPhase1 = [
     'BPix1+FPix1_pos+FPix3_pos', 'BPix1+FPix1_neg+FPix3_neg'
 ]
 trackingPhase1.toModify(tripletElectronSeedLayers, layerList = _layerListForPhase1)
+trackingPhase1QuadProp.toModify(tripletElectronSeedLayers, layerList = _layerListForPhase1)
 trackingPhase1PU70.toModify(tripletElectronSeedLayers,
     layerList = _layerListForPhase1,
     BPix = dict(skipClusters = 'pixelPairStepSeedClusterMask'),
@@ -154,8 +159,7 @@ pixelPairElectronSeedLayers = cms.EDProducer("SeedingLayersEDProducer",
     skipClusters = cms.InputTag('tripletElectronClusterMask')
     )
 )
-trackingPhase1.toModify(pixelPairElectronSeedLayers,
-    layerList = [
+_layerListForPhase1 = [
         'BPix1+BPix2', 'BPix1+BPix3', 'BPix1+BPix4',
         'BPix2+BPix3', 'BPix2+BPix4',
         'BPix3+BPix4',
@@ -166,7 +170,8 @@ trackingPhase1.toModify(pixelPairElectronSeedLayers,
         'FPix1_pos+FPix3_pos', 'FPix1_neg+FPix3_neg',
         'FPix2_pos+FPix3_pos', 'FPix2_neg+FPix3_neg' 
     ]
-)
+trackingPhase1.toModify(pixelPairElectronSeedLayers, layerList = _layerListForPhase1)
+trackingPhase1QuadProp.toModify(pixelPairElectronSeedLayers, layerList = _layerListForPhase1)
 
 from RecoTracker.TkTrackingRegions.globalTrackingRegionWithVertices_cff import globalTrackingRegionWithVertices as _globalTrackingRegionWithVertices
 pixelPairElectronTrackingRegions = _globalTrackingRegionWithVertices.clone(RegionPSet = dict(
@@ -245,7 +250,7 @@ newCombinedSeeds = RecoTracker.TkSeedGenerator.GlobalCombinedSeeds_cfi.globalCom
       cms.InputTag('stripPairElectronSeeds')
       )
 )
-trackingPhase1.toModify(newCombinedSeeds, seedCollections = [
+_seedCollections_Phase1 = [
     'initialStepSeeds',
     'highPtTripletStepSeeds',
     'mixedTripletStepSeeds',
@@ -253,7 +258,9 @@ trackingPhase1.toModify(newCombinedSeeds, seedCollections = [
     'tripletElectronSeeds',
     'pixelPairElectronSeeds',
     'stripPairElectronSeeds'
-])
+]
+trackingPhase1.toModify(newCombinedSeeds, seedCollections = _seedCollections_Phase1)
+trackingPhase1QuadProp.toModify(newCombinedSeeds, seedCollections = _seedCollections_Phase1)
 trackingPhase1PU70.toModify(newCombinedSeeds, seedCollections = [
     'initialStepSeeds',
     'highPtTripletStepSeeds',
@@ -263,7 +270,6 @@ trackingPhase1PU70.toModify(newCombinedSeeds, seedCollections = [
 trackingPhase2PU140.toModify(newCombinedSeeds, seedCollections = [
     'initialStepSeeds',
     'highPtTripletStepSeeds',
-    'pixelPairStepSeeds',
     'tripletElectronSeeds'
 ])
 
@@ -289,6 +295,7 @@ electronSeedsSeq = cms.Sequence( initialStepSeedClusterMask*
 _electronSeedsSeq_Phase1 = electronSeedsSeq.copy()
 _electronSeedsSeq_Phase1.replace(pixelPairStepSeedClusterMask, detachedTripletStepSeedClusterMask)
 trackingPhase1.toReplaceWith(electronSeedsSeq, _electronSeedsSeq_Phase1)
+trackingPhase1QuadProp.toReplaceWith(electronSeedsSeq, _electronSeedsSeq_Phase1)
 trackingPhase1PU70.toReplaceWith(electronSeedsSeq, cms.Sequence(
     initialStepSeedClusterMask*
     highPtTripletStepSeedClusterMask*
